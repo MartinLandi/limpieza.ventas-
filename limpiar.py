@@ -180,4 +180,4 @@ def main():
     print("✅ Proceso completado con éxito!")
 
 if __name__ == "__main__":
-    main()                   PEDAZO DE MIERDA, ESTE ES EL CODIGO
+    main()                   
