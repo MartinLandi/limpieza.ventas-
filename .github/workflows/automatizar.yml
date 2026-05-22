@@ -1,43 +1,8 @@
-name: #Limpieza Automática de Ventas
-
-on:
-  schedule:
-    - cron: '0 2 * * *'
-  workflow_dispatch:
-
-jobs:
-  limpiar:
-    runs-on: ubuntu-latest
-    steps:
-      # 1. Checkout con limpieza forzada y toda la historia
-      - name: Checkout del código más reciente
-        uses: actions/checkout@v4
-        with:
-          # Limpia el directorio de trabajo antes de clonar
-          clean: true
-          # fetch-depth: 0 asegura que clona todo el historial, no solo el último commit
-          fetch-depth: 0
-
-      # 2. Configurar Python
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      # 3. Instalar dependencias (también se podría intentar limpiar caché de pip, pero no es lo central)
-      - name: Instalar dependencias
-        run: pip install pandas gspread oauth2client requests
-
-      # 4. Ejecutar limpieza con depuración
       - name: Ejecutar limpieza
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
         run: |
-          echo "Archivos en el directorio antes de ejecutar:"
-          ls -la
-          echo "----"
-          echo "Contenido del archivo limpiar.py (primeras 20 líneas, para verificar el FILE_ID):"
-          head -n 20 limpiar.py
-          echo "----"
-          echo "Ejecutando script..."
+          echo "=== VERIFICACIÓN DEL ARCHIVO ==="
+          head -n 15 limpiar.py
+          echo "================================"
           python limpiar.py
