@@ -12,7 +12,7 @@ from datetime import datetime
 # ============================================================
 
 # 1. El ID de tu archivo en Google Drive (el que está en la URL)
-FILE_ID = "TU_FILE_ID_AQUI"  # Ejemplo: "1ABC123_DEF456..."
+FILE_ID = "1_UnddMEVHI-TOU-PUBUVWme9pS07X6GqCxQ7KERSNS4"  # Ejemplo: "1ABC123_DEF456..."
 
 # 2. El nombre de tu Google Sheets (donde están los datos limpios)
 SHEET_NAME = "Dashboard Datos"  # Ejemplo: "Ventas Limpias"
