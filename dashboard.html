@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>El Buen Sabor — Dashboard</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root {
+      --cream:    #fdf6ec;
+      --warm:     #f5e6cc;
+      --rust:     #c2410c;
+      --rust-lt:  #ea580c;
+      --rust-dk:  #9a3412;
+      --olive:    #4d7c0f;
+      --gold:     #b45309;
+      --ink:      #1c1917;
+      --muted:    #78716c;
+      --border:   #e7d9c5;
+      --card-bg:  #fffbf5;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      background: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--rust);
+      padding: 1.25rem 1.5rem 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,.18);
+    }
+    header h1 {
+      font-family: 'Fraunces', serif;
+      font-weight: 700;
+      font-size: clamp(1.3rem, 4vw, 1.75rem);
+      color: #fff;
+      margin: 0;
+      letter-spacing: -.5px;
+    }
+    header .subtitle {
+      font-size: .78rem;
+      color: rgba(255,255,255,.7);
+      margin-top: .15rem;
+    }
+    #last-update {
+      font-size: .72rem;
+      color: rgba(255,255,255,.65);
+    }
+
+    /* ── MAIN WRAPPER ── */
+    main {
+      padding: 1.25rem 1rem 3rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      font-family: 'Fraunces', serif;
+      font-size: .7rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: .6rem;
+      padding-left: 2px;
+    }
+
+    /* ── FILTER BAR ── */
+    .filter-bar {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: .75rem;
+      align-items: flex-end;
+    }
+    .filter-bar .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: .25rem;
+      flex: 1 1 140px;
+    }
+    .filter-bar label {
+      font-size: .72rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .filter-bar input[type="date"] {
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: .45rem .75rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .88rem;
+      background: var(--cream);
+      color: var(--ink);
+      outline: none;
+      transition: border-color .2s;
+    }
+    .filter-bar input[type="date"]:focus { border-color: var(--rust); }
+    .btn-apply {
+      background: var(--rust);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: .5rem 1.25rem;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 600;
+      font-size: .88rem;
+      cursor: pointer;
+      transition: background .2s;
+      flex: 0 0 auto;
+    }
+    .btn-apply:hover { background: var(--rust-dk); }
+    .btn-reset {
+      background: transparent;
+      color: var(--muted);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: .5rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: .85rem;
+      cursor: pointer;
+      transition: all .2s;
+      flex: 0 0 auto;
+    }
+    .btn-reset:hover { border-color: var(--rust); color: var(--rust); }
+
+    /* ── KPI CARDS ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: .85rem;
+      margin-bottom: 1.5rem;
+    }
+    @media (min-width: 700px) {
+      .kpi-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.1rem 1rem 1rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform .2s;
+    }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--accent, var(--rust));
+    }
+    .kpi-card:hover { transform: translateY(-2px); }
+    .kpi-icon {
+      font-size: 1.4rem;
+      margin-bottom: .35rem;
+      display: block;
+    }
+    .kpi-label {
+      font-size: .68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted);
+      margin-bottom: .3rem;
+    }
+    .kpi-value {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(1.3rem, 3.5vw, 1.8rem);
+      font-weight: 700;
+      line-height: 1.1;
+      color: var(--ink);
+      word-break: break-word;
+    }
+    .kpi-value.small-val { font-size: clamp(1rem, 3vw, 1.35rem); }
+
+    /* ── CHART CARDS ── */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    @media (min-width: 768px) {
+      .chart-grid { grid-template-columns: 1.6fr 1fr; }
+    }
+    .chart-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.25rem 1.25rem 1rem;
+    }
+    .chart-title {
+      font-family: 'Fraunces', serif;
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: .9rem;
+      color: var(--ink);
+    }
+    .chart-wrap { position: relative; width: 100%; }
+
+    /* ── TABLE CARD ── */
+    .table-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.25rem 1.25rem 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .table-title {
+      font-family: 'Fraunces', serif;
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: .9rem;
+    }
+    .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .84rem;
+    }
+    thead tr {
+      background: var(--warm);
+    }
+    th {
+      padding: .6rem .85rem;
+      text-align: left;
+      font-size: .68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    td {
+      padding: .55rem .85rem;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--warm); }
+    .td-total { font-weight: 600; color: var(--olive); }
+
+    /* ── LOADING / EMPTY ── */
+    .loader-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1rem;
+      gap: 1rem;
+    }
+    .spinner {
+      width: 2.5rem; height: 2.5rem;
+      border: 3px solid var(--border);
+      border-top-color: var(--rust);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loader-text { color: var(--muted); font-size: .88rem; }
+
+    .error-banner {
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      color: #b91c1c;
+      font-size: .88rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    /* config modal */
+    .config-btn {
+      background: rgba(255,255,255,.15);
+      border: 1.5px solid rgba(255,255,255,.3);
+      color: #fff;
+      border-radius: 8px;
+      padding: .35rem .85rem;
+      font-size: .8rem;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: background .2s;
+    }
+    .config-btn:hover { background: rgba(255,255,255,.25); }
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 1.75rem;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    }
+    .modal-box h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+    .modal-box label {
+      display: block;
+      font-size: .75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin-bottom: .3rem;
+    }
+    .modal-box input {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: .55rem .85rem;
+      font-size: .9rem;
+      font-family: 'DM Sans', sans-serif;
+      margin-bottom: 1rem;
+      background: var(--cream);
+      outline: none;
+    }
+    .modal-box input:focus { border-color: var(--rust); }
+    .modal-hint {
+      font-size: .75rem;
+      color: var(--muted);
+      margin-top: -.7rem;
+      margin-bottom: 1rem;
+    }
+    .modal-actions { display: flex; gap: .75rem; justify-content: flex-end; }
+    .btn-save {
+      background: var(--rust);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: .5rem 1.25rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .btn-cancel {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--muted);
+      border-radius: 8px;
+      padding: .5rem 1rem;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    /* ── EMPTY state ── */
+    .empty-state {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--muted);
+    }
+    .empty-state .empty-icon { font-size: 2.5rem; margin-bottom: .5rem; }
+  </style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<header>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;">
+    <div>
+      <h1>🍽️ El Buen Sabor</h1>
+      <div class="subtitle">Panel de ventas · <span id="last-update">Cargando…</span></div>
+    </div>
+    <button class="config-btn" onclick="openConfig()">⚙ Configurar</button>
+  </div>
+</header>
+
+<!-- ══ CONFIG MODAL ══ -->
+<div class="modal-overlay" id="configModal">
+  <div class="modal-box">
+    <h2>⚙ Configuración de datos</h2>
+
+    <label>ID de la hoja de Google Sheets</label>
+    <input id="cfg-sheet-id" type="text" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" />
+    <p class="modal-hint">Encontralo en la URL de tu hoja: …spreadsheets/d/<strong>[ID]</strong>/edit</p>
+
+    <label>Clave de API de Google</label>
+    <input id="cfg-api-key" type="text" placeholder="AIzaSy…" />
+    <p class="modal-hint">Generala en Google Cloud Console → APIs → Credentials (sin OAuth).</p>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeConfig()">Cancelar</button>
+      <button class="btn-save" onclick="saveConfig()">Guardar y cargar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MAIN ══ -->
+<main>
+
+  <!-- Error banner -->
+  <div class="error-banner" id="errorBanner"></div>
+
+  <!-- Loading -->
+  <div class="loader-wrap" id="loaderWrap">
+    <div class="spinner"></div>
+    <p class="loader-text">Leyendo datos desde Google Sheets…</p>
+  </div>
+
+  <!-- Content (hidden until data loads) -->
+  <div id="dashContent" style="display:none;">
+
+    <!-- FILTER BAR -->
+    <p class="section-label">Filtrar período</p>
+    <div class="filter-bar">
+      <div class="form-group">
+        <label for="dateFrom">Desde</label>
+        <input type="date" id="dateFrom" />
+      </div>
+      <div class="form-group">
+        <label for="dateTo">Hasta</label>
+        <input type="date" id="dateTo" />
+      </div>
+      <button class="btn-apply" onclick="applyFilter()">Aplicar</button>
+      <button class="btn-reset" onclick="resetFilter()">Ver todo</button>
+    </div>
+
+    <!-- KPI CARDS -->
+    <p class="section-label">Resumen</p>
+    <div class="kpi-grid">
+      <div class="kpi-card" style="--accent:#c2410c;">
+        <span class="kpi-icon">💰</span>
+        <div class="kpi-label">Ventas totales</div>
+        <div class="kpi-value" id="kpiTotal">—</div>
+      </div>
+      <div class="kpi-card" style="--accent:#b45309;">
+        <span class="kpi-icon">🧾</span>
+        <div class="kpi-label">Ticket promedio</div>
+        <div class="kpi-value" id="kpiTicket">—</div>
+      </div>
+      <div class="kpi-card" style="--accent:#4d7c0f;">
+        <span class="kpi-icon">📦</span>
+        <div class="kpi-label">Pedidos</div>
+        <div class="kpi-value" id="kpiOrders">—</div>
+      </div>
+      <div class="kpi-card" style="--accent:#0369a1;">
+        <span class="kpi-icon">⭐</span>
+        <div class="kpi-label">Más vendido</div>
+        <div class="kpi-value small-val" id="kpiBest">—</div>
+      </div>
+    </div>
+
+    <!-- CHARTS -->
+    <p class="section-label">Análisis</p>
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title">Ventas por día</div>
+        <div class="chart-wrap" style="height:240px;">
+          <canvas id="lineChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Top 5 productos</div>
+        <div class="chart-wrap" style="height:240px;">
+          <canvas id="barChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <p class="section-label">Últimas ventas</p>
+    <div class="table-card">
+      <div class="table-title">Últimas 20 transacciones</div>
+      <div class="table-responsive">
+        <table id="salesTable">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Producto</th>
+              <th>Cant.</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <div id="tableEmpty" class="empty-state" style="display:none;">
+          <div class="empty-icon">🍽️</div>
+          <p>Sin datos para el período seleccionado.</p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /dashContent -->
+</main>
+
+<!-- ══ SCRIPTS ══ -->
+<script>
+/* ─────────────────────────────────────────
+   CONFIGURACIÓN
+   Editá SHEET_ID y API_KEY con tus valores,
+   o usá el botón ⚙ Configurar en pantalla.
+───────────────────────────────────────── */
+const CONFIG_KEY = 'buen_sabor_config';
+let SHEET_ID = '';
+let API_KEY  = '';
+const SHEET_TAB = 'ventas_limpias';
+
+/* ── Estado global ── */
+let allRows   = [];  // [{fecha, producto, cantidad, precio_unitario, total}]
+let filtered  = [];
+let lineChart = null;
+let barChart  = null;
+
+/* ── Helpers ── */
+const fmt$ = n => '$' + Math.round(n).toLocaleString('es-AR');
+const fmtDate = iso => {
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}`;
+};
+
+/* ─────────────────────────────────────────
+   CONFIG MODAL
+───────────────────────────────────────── */
+function openConfig() {
+  const saved = JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}');
+  document.getElementById('cfg-sheet-id').value = saved.sheetId || SHEET_ID;
+  document.getElementById('cfg-api-key').value  = saved.apiKey  || API_KEY;
+  document.getElementById('configModal').classList.add('open');
+}
+function closeConfig() {
+  document.getElementById('configModal').classList.remove('open');
+}
+function saveConfig() {
+  const sheetId = document.getElementById('cfg-sheet-id').value.trim();
+  const apiKey  = document.getElementById('cfg-api-key').value.trim();
+  if (!sheetId || !apiKey) { alert('Completá ambos campos.'); return; }
+  localStorage.setItem(CONFIG_KEY, JSON.stringify({ sheetId, apiKey }));
+  SHEET_ID = sheetId;
+  API_KEY  = apiKey;
+  closeConfig();
+  loadData();
+}
+
+/* ─────────────────────────────────────────
+   FETCH DATA
+───────────────────────────────────────── */
+async function loadData() {
+  showLoader(true);
+  hideError();
+
+  if (!SHEET_ID || !API_KEY) {
+    showLoader(false);
+    showError('Configurá el ID de la hoja y la clave de API usando el botón ⚙ arriba.');
+    return;
+  }
+
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_TAB)}?key=${API_KEY}`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.error?.message || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    parseRows(data.values || []);
+    document.getElementById('last-update').textContent =
+      'Actualizado: ' + new Date().toLocaleString('es-AR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('dashContent').style.display = 'block';
+    showLoader(false);
+    applyFilter();
+  } catch (e) {
+    showLoader(false);
+    showError('Error al leer Google Sheets: ' + e.message +
+      '. Verificá que el ID, la clave de API y los permisos sean correctos.');
+    console.error(e);
+  }
+}
+
+function parseRows(raw) {
+  if (!raw.length) { allRows = []; return; }
+  const headers = raw[0].map(h => h.toLowerCase().trim());
+  const idx = h => headers.indexOf(h);
+
+  const iFecha   = idx('fecha');
+  const iProducto= idx('producto');
+  const iCant    = idx('cantidad');
+  const iPrecio  = idx('precio_unitario');
+  const iTotal   = idx('total');
+
+  allRows = raw.slice(1).map(r => ({
+    fecha:           (r[iFecha]    || '').trim(),
+    producto:        (r[iProducto] || '').trim(),
+    cantidad:        parseFloat((r[iCant]   || '0').replace(',','.')) || 0,
+    precio_unitario: parseFloat((r[iPrecio] || '0').replace(',','.')) || 0,
+    total:           parseFloat((r[iTotal]  || '0').replace(',','.')) || 0,
+  })).filter(r => r.fecha && r.producto);
+
+  /* Set date range inputs */
+  const dates = allRows.map(r => r.fecha).filter(Boolean).sort();
+  if (dates.length) {
+    document.getElementById('dateFrom').value = dates[0];
+    document.getElementById('dateTo').value   = dates[dates.length - 1];
+  }
+}
+
+/* ─────────────────────────────────────────
+   FILTER
+───────────────────────────────────────── */
+function applyFilter() {
+  const from = document.getElementById('dateFrom').value;
+  const to   = document.getElementById('dateTo').value;
+  filtered = allRows.filter(r => {
+    const d = r.fecha;
+    return (!from || d >= from) && (!to || d <= to);
+  });
+  renderAll();
+}
+
+function resetFilter() {
+  const dates = allRows.map(r => r.fecha).filter(Boolean).sort();
+  if (dates.length) {
+    document.getElementById('dateFrom').value = dates[0];
+    document.getElementById('dateTo').value   = dates[dates.length - 1];
+  }
+  filtered = [...allRows];
+  renderAll();
+}
+
+/* ─────────────────────────────────────────
+   RENDER ALL
+───────────────────────────────────────── */
+function renderAll() {
+  renderKPIs();
+  renderLineChart();
+  renderBarChart();
+  renderTable();
+}
+
+/* ── KPIs ── */
+function renderKPIs() {
+  const rows = filtered;
+  const total  = rows.reduce((s,r) => s + r.total, 0);
+  const ticket = rows.length ? total / rows.length : 0;
+  const orders = rows.length;
+
+  // Most sold product by units
+  const units = {};
+  rows.forEach(r => { units[r.producto] = (units[r.producto] || 0) + r.cantidad; });
+  const best = Object.entries(units).sort((a,b) => b[1]-a[1])[0];
+
+  document.getElementById('kpiTotal').textContent  = fmt$(total);
+  document.getElementById('kpiTicket').textContent = fmt$(ticket);
+  document.getElementById('kpiOrders').textContent = orders.toLocaleString('es-AR');
+  document.getElementById('kpiBest').textContent   = best ? best[0] : '—';
+}
+
+/* ── Line chart: ventas por día ── */
+function renderLineChart() {
+  const byDay = {};
+  filtered.forEach(r => {
+    byDay[r.fecha] = (byDay[r.fecha] || 0) + r.total;
+  });
+  const labels = Object.keys(byDay).sort();
+  const values = labels.map(d => byDay[d]);
+
+  const ctx = document.getElementById('lineChart').getContext('2d');
+  if (lineChart) lineChart.destroy();
+
+  lineChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels.map(fmtDate),
+      datasets: [{
+        label: 'Ventas ($)',
+        data: values,
+        borderColor: '#c2410c',
+        backgroundColor: 'rgba(194,65,12,.12)',
+        borderWidth: 2.5,
+        pointRadius: labels.length > 30 ? 0 : 4,
+        pointHoverRadius: 6,
+        pointBackgroundColor: '#c2410c',
+        tension: .35,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => fmt$(ctx.parsed.y)
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { font: { size: 10 }, maxTicksLimit: 10, color: '#78716c' },
+          grid: { display: false }
+        },
+        y: {
+          ticks: {
+            font: { size: 10 }, color: '#78716c',
+            callback: v => '$' + (v >= 1000 ? Math.round(v/1000)+'k' : v)
+          },
+          grid: { color: '#e7d9c5' }
+        }
+      }
+    }
+  });
+}
+
+/* ── Bar chart: top 5 productos ── */
+function renderBarChart() {
+  const byProd = {};
+  filtered.forEach(r => {
+    byProd[r.producto] = (byProd[r.producto] || 0) + r.cantidad;
+  });
+  const sorted = Object.entries(byProd).sort((a,b) => b[1]-a[1]).slice(0,5);
+  const labels = sorted.map(e => e[0]);
+  const values = sorted.map(e => e[1]);
+
+  const colors = ['#c2410c','#ea580c','#b45309','#4d7c0f','#0369a1'];
+
+  const ctx = document.getElementById('barChart').getContext('2d');
+  if (barChart) barChart.destroy();
+
+  barChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Unidades',
+        data: values,
+        backgroundColor: colors.slice(0, labels.length),
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: 'y',   // horizontal bars look better on mobile
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: { label: ctx => ctx.parsed.x + ' unidades' }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { font: { size: 10 }, color: '#78716c' },
+          grid: { color: '#e7d9c5' }
+        },
+        y: {
+          ticks: {
+            font: { size: 10 }, color: '#78716c',
+            callback: v => {
+              const s = labels[v] || '';
+              return s.length > 18 ? s.slice(0,16)+'…' : s;
+            }
+          },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+/* ── Table ── */
+function renderTable() {
+  const tbody = document.getElementById('tableBody');
+  const empty = document.getElementById('tableEmpty');
+
+  // Sort by date desc, take last 20
+  const rows = [...filtered]
+    .sort((a,b) => b.fecha.localeCompare(a.fecha))
+    .slice(0, 20);
+
+  if (!rows.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td>${fmtDate(r.fecha)}</td>
+      <td>${r.producto}</td>
+      <td>${r.cantidad}</td>
+      <td class="td-total">${fmt$(r.total)}</td>
+    </tr>
+  `).join('');
+}
+
+/* ─────────────────────────────────────────
+   UI HELPERS
+───────────────────────────────────────── */
+function showLoader(v) {
+  document.getElementById('loaderWrap').style.display = v ? 'flex' : 'none';
+}
+function showError(msg) {
+  const el = document.getElementById('errorBanner');
+  el.textContent = msg;
+  el.style.display = 'block';
+  document.getElementById('dashContent').style.display = 'none';
+}
+function hideError() {
+  document.getElementById('errorBanner').style.display = 'none';
+}
+
+/* ─────────────────────────────────────────
+   INIT
+───────────────────────────────────────── */
+(function init() {
+  const saved = JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}');
+  if (saved.sheetId) SHEET_ID = saved.sheetId;
+  if (saved.apiKey)  API_KEY  = saved.apiKey;
+  loadData();
+})();
+</script>
+</body>
+</html>
