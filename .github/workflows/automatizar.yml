@@ -1,8 +1,2 @@
-      - name: Ejecutar limpieza
-        env:
-          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-        run: |
-          echo "=== VERIFICACIÓN DEL ARCHIVO ==="
-          head -n 15 limpiar.py
-          echo "================================"
-          python limpiar.py
+      - name: Instalar dependencias
+        run: pip install requests gspread google-auth
